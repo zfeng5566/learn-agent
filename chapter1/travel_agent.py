@@ -2,35 +2,17 @@
 """第一章动手体验：Thought-Action-Observation 范式的智能旅行助手。
 
 参考教程：https://hello-agents.datawhale.cc/#/./chapter1/第一章%20初识智能体
-LLM 通过 Anthropic SDK 调用，凭证与本机 Claude Code 配置保持一致：
-  ANTHROPIC_BASE_URL   # OpenAI 兼容/Anthropic 协议服务地址（本地网关）
-  ANTHROPIC_AUTH_TOKEN # 认证 token
-  ANTHROPIC_MODEL      # 模型 ID
-以上可在项目根目录 .env 中配置，真实环境变量优先。
+LLM 客户端复用 common/llm_client.py（Anthropic 协议，与本机 Claude Code 配置一致）。
 """
 import os
 import re
+import sys
 
-import anthropic
 import requests
 from tavily import TavilyClient
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-def load_env():
-    """从项目根目录的 .env 文件加载环境变量（已存在的环境变量优先）。"""
-    env_path = os.path.join(PROJECT_ROOT, ".env")
-    if not os.path.exists(env_path):
-        return
-    with open(env_path, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            os.environ.setdefault(key.strip(), value.strip())
-
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from common.llm_client import AnthropicCompatibleClient, load_env
 
 load_env()
 
@@ -124,33 +106,6 @@ available_tools = {
 }
 
 
-class AnthropicCompatibleClient:
-    """通过 Anthropic SDK 调用任意 Anthropic 协议兼容服务的客户端。"""
-
-    def __init__(self, model: str, auth_token: str, base_url: str):
-        self.model = model
-        # auth_token 走 Authorization: Bearer 头，与 ANTHROPIC_AUTH_TOKEN 语义一致
-        self.client = anthropic.Anthropic(auth_token=auth_token, base_url=base_url)
-
-    def generate(self, prompt: str, system_prompt: str) -> str:
-        """调用 LLM 生成回应。prompt 为累积的任务历史，system_prompt 为指令模板。"""
-        print("正在调用大语言模型...")
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=16000,
-                system=system_prompt,
-                messages=[{'role': 'user', 'content': prompt}],
-            )
-            # content 是内容块列表，拼接其中的 text 块
-            answer = "".join(block.text for block in response.content if block.type == "text")
-            print("大语言模型响应成功。")
-            return answer
-        except Exception as e:
-            print(f"调用LLM API时发生错误: {e}")
-            return "错误:调用语言模型服务时出错。"
-
-
 def truncate_llm_output(llm_output: str) -> str:
     """模型可能输出多余的 Thought-Action 对，截断保留第一对。"""
     match = re.search(
@@ -182,11 +137,7 @@ def execute_action(action_str: str) -> str | None:
 
 def main():
     """主入口：初始化 LLM 客户端并运行 Thought-Action-Observation 主循环。"""
-    llm = AnthropicCompatibleClient(
-        model=os.environ["ANTHROPIC_MODEL"],
-        auth_token=os.environ["ANTHROPIC_AUTH_TOKEN"],
-        base_url=os.environ["ANTHROPIC_BASE_URL"],
-    )
+    llm = AnthropicCompatibleClient()
 
     user_prompt = "你好，请帮我查询一下今天北京的天气，然后根据天气推荐一个合适的旅游景点。"
     prompt_history = [f"用户请求: {user_prompt}"]
