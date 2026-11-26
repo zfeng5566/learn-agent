@@ -3,6 +3,19 @@
 > 适用：初中高级前端 / 全栈偏前端岗位。每个模块标注 **侧重点**（面试官真正想考察什么）和 **高频题**。
 > 星级：★★★ 必考 / ★★ 常考 / ★ 加分项
 
+**分技术栈详解**（原理 / 代码 / 答题要点 / 追问）：
+
+| 文档 | 对应大纲章节 |
+|---|---|
+| [01 HTML + CSS](frontend-interview/01-html-css.md) | 1、2 |
+| [02 JavaScript](frontend-interview/02-javascript.md) | 3 |
+| [03 TypeScript](frontend-interview/03-typescript.md) | 4 |
+| [04 浏览器 + 网络 + 安全](frontend-interview/04-browser-network-security.md) | 5、6、10 |
+| [05 React + Next.js](frontend-interview/05-react.md) | 7 |
+| [06 Vue 生态](frontend-interview/06-vue.md) | 7' |
+| [07 工程化 + 性能优化](frontend-interview/07-engineering-performance.md) | 8、9 |
+| [08 Node + 系统设计 + AI](frontend-interview/08-node-system-design-ai.md) | 11、12、13 |
+
 ---
 
 ## 0. 不同级别的侧重差异
